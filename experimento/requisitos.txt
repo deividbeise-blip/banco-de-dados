@@ -1,0 +1,4 @@
+- cliente: consulta o proprio cadastro em clientes e consulta e cria somente os proprios pedidos; nao acessa funcionarios.
+- atendente: consulta clientes e pedidos e cria pedidos; nao acessa funcionarios (salarios).
+- gerente: consulta clientes, pedidos e funcionarios (inclusive salarios).
+- admin_bd: administra o esquema e as politicas; e o dono das tabelas.

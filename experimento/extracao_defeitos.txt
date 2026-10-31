@@ -1,0 +1,58 @@
+    tabela    |   coluna   |           tipo           |   dono   
+--------------+------------+--------------------------+----------
+ clientes     | id         | integer                  | admin_bd
+ clientes     | nome       | text                     | admin_bd
+ clientes     | cpf        | text                     | admin_bd
+ clientes     | email      | text                     | admin_bd
+ funcionarios | id         | integer                  | admin_bd
+ funcionarios | nome       | text                     | admin_bd
+ funcionarios | cargo      | text                     | admin_bd
+ funcionarios | salario    | numeric(10,2)            | admin_bd
+ pedidos      | id         | integer                  | admin_bd
+ pedidos      | cliente_id | integer                  | admin_bd
+ pedidos      | descricao  | text                     | admin_bd
+ pedidos      | valor      | numeric(10,2)            | admin_bd
+ pedidos      | criado_em  | timestamp with time zone | admin_bd
+(13 rows)
+
+   papel   | rolsuper | rolbypassrls | rolinherit | rolcanlogin 
+-----------+----------+--------------+------------+-------------
+ admin_bd  | f        | f            | t          | f
+ atendente | f        | f            | t          | f
+ cliente   | f        | t            | t          | f
+ gerente   | f        | f            | t          | f
+(4 rows)
+
+  membro   | papel_concedido | herda_privilegios 
+-----------+-----------------+-------------------
+ atendente | admin_bd        | t
+(1 row)
+
+    tabela    |   papel   |      privilegios       
+--------------+-----------+------------------------
+ clientes     | atendente | SELECT
+ clientes     | cliente   | SELECT
+ clientes     | gerente   | SELECT
+ funcionarios | gerente   | SELECT
+ pedidos      | atendente | DELETE, INSERT, SELECT
+ pedidos      | cliente   | INSERT, SELECT
+ pedidos      | gerente   | SELECT
+(7 rows)
+
+    tabela    | rls_habilitado | rls_forcado 
+--------------+----------------+-------------
+ clientes     | f              | f
+ funcionarios | t              | f
+ pedidos      | t              | f
+(3 rows)
+
+    tabela    |         politica         |    tipo    |        roles        | comando |                                    using_expr                                     | with_check 
+--------------+--------------------------+------------+---------------------+---------+-----------------------------------------------------------------------------------+------------
+ clientes     | clientes_cliente_sel     | PERMISSIVE | {cliente}           | SELECT  | (id = (NULLIF(current_setting('app.cliente_id'::text, true), ''::text))::integer) | 
+ clientes     | clientes_equipe_sel      | PERMISSIVE | {atendente,gerente} | SELECT  | true                                                                              | 
+ funcionarios | funcionarios_gerente_sel | PERMISSIVE | {gerente}           | SELECT  | true                                                                              | 
+ pedidos      | pedidos_cliente_ins      | PERMISSIVE | {cliente}           | INSERT  |                                                                                   | true
+ pedidos      | pedidos_cliente_sel      | PERMISSIVE | {cliente}           | SELECT  | true                                                                              | 
+ pedidos      | pedidos_equipe           | PERMISSIVE | {atendente,gerente} | ALL     | true                                                                              | true
+(6 rows)
+

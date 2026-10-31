@@ -1,0 +1,76 @@
+=== D1: RLS desabilitado em clientes ===
+ set_config 
+------------
+ 1
+(1 row)
+
+ANTES (esperado: 1)
+ clientes_visiveis 
+-------------------
+                 1
+(1 row)
+
+DEPOIS (defeito: 3)
+ clientes_visiveis 
+-------------------
+                 3
+(1 row)
+
+=== D2: pedidos_cliente_sel com USING (true) ===
+ set_config 
+------------
+ 1
+(1 row)
+
+ANTES (esperado: 2)
+ pedidos_visiveis 
+------------------
+                2
+(1 row)
+
+DEPOIS (defeito: 6)
+ pedidos_visiveis 
+------------------
+                6
+(1 row)
+
+=== D3: atendente com DELETE em pedidos ===
+ANTES (esperado: ERROR permission denied)
+psql:/scripts/07_provas.sql:38: ERROR:  permission denied for table pedidos
+DEPOIS (defeito: DELETE 1)
+=== D4: pedidos_cliente_ins com WITH CHECK (true) ===
+ set_config 
+------------
+ 1
+(1 row)
+
+ANTES (esperado: ERROR violates row-level security policy)
+psql:/scripts/07_provas.sql:53: ERROR:  new row violates row-level security policy for table "pedidos"
+DEPOIS (defeito: INSERT 0 1)
+=== D5: cliente com BYPASSRLS ===
+ set_config 
+------------
+ 1
+(1 row)
+
+ANTES (esperado: 2)
+ pedidos_visiveis 
+------------------
+                2
+(1 row)
+
+DEPOIS (defeito: 6)
+ pedidos_visiveis 
+------------------
+                6
+(1 row)
+
+=== D6: atendente herda admin_bd ===
+ANTES (esperado: ERROR permission denied)
+psql:/scripts/07_provas.sql:80: ERROR:  permission denied for table funcionarios
+DEPOIS (defeito: 3)
+ salarios_visiveis 
+-------------------
+                 3
+(1 row)
+

@@ -1,0 +1,7 @@
+id,objeto,tipo_de_defeito,risco,correcao_esperada
+D1,tabela clientes,RLS desabilitado,Cliente le CPF e e-mail de todos os clientes,ALTER TABLE clientes ENABLE ROW LEVEL SECURITY
+D2,politica pedidos_cliente_sel (pedidos),Condicao sempre verdadeira,Cliente le pedidos de outros clientes,Restringir USING a cliente_id igual ao da sessao
+D3,privilegio DELETE de atendente em pedidos,Permissao excessiva,Atendente apaga pedidos,REVOKE DELETE ON pedidos FROM atendente
+D4,politica pedidos_cliente_ins (pedidos),WITH CHECK sempre verdadeiro,Cliente grava pedido em nome de outro,Restringir WITH CHECK a cliente_id igual ao da sessao
+D5,papel cliente,Atributo BYPASSRLS,Cliente contorna todas as politicas,ALTER ROLE cliente NOBYPASSRLS
+D6,heranca atendente -> admin_bd,Heranca indevida,Atendente adquire privilegios de administrador,REVOKE admin_bd FROM atendente

@@ -1,0 +1,31 @@
+## ESQUEMA (sem dados)
+Tabela clientes (dono: admin_bd): id integer, nome text, cpf text, email text
+Tabela funcionarios (dono: admin_bd): id integer, nome text, cargo text, salario numeric(10,2)
+Tabela pedidos (dono: admin_bd): id integer, cliente_id integer, descricao text, valor numeric(10,2), criado_em timestamp with time zone
+
+## PAPEIS E PRIVILEGIOS
+Papel admin_bd: superusuario=nao, contorna_rls=nao, herda_privilegios=sim, login=nao
+Papel atendente: superusuario=nao, contorna_rls=nao, herda_privilegios=sim, login=nao
+Papel cliente: superusuario=nao, contorna_rls=nao, herda_privilegios=sim, login=nao
+Papel gerente: superusuario=nao, contorna_rls=nao, herda_privilegios=sim, login=nao
+Heranca: nenhuma
+Privilegios: o papel atendente tem SELECT em clientes
+Privilegios: o papel cliente tem SELECT em clientes
+Privilegios: o papel gerente tem SELECT em clientes
+Privilegios: o papel gerente tem SELECT em funcionarios
+Privilegios: o papel atendente tem INSERT, SELECT em pedidos
+Privilegios: o papel cliente tem INSERT, SELECT em pedidos
+Privilegios: o papel gerente tem SELECT em pedidos
+
+## ESTADO DO RLS
+Tabela clientes: rls_habilitado=sim, rls_forcado=nao
+Tabela funcionarios: rls_habilitado=sim, rls_forcado=nao
+Tabela pedidos: rls_habilitado=sim, rls_forcado=nao
+
+## POLITICAS RLS
+Politica clientes_cliente_sel em clientes (PERMISSIVE) para {cliente}, comando SELECT; USING: (id = (NULLIF(current_setting('app.cliente_id'::text, true), ''::text))::integer); WITH CHECK: (nenhum)
+Politica clientes_equipe_sel em clientes (PERMISSIVE) para {atendente,gerente}, comando SELECT; USING: true; WITH CHECK: (nenhum)
+Politica funcionarios_gerente_sel em funcionarios (PERMISSIVE) para {gerente}, comando SELECT; USING: true; WITH CHECK: (nenhum)
+Politica pedidos_cliente_ins em pedidos (PERMISSIVE) para {cliente}, comando INSERT; USING: (nenhum); WITH CHECK: (cliente_id = (NULLIF(current_setting('app.cliente_id'::text, true), ''::text))::integer)
+Politica pedidos_cliente_sel em pedidos (PERMISSIVE) para {cliente}, comando SELECT; USING: (cliente_id = (NULLIF(current_setting('app.cliente_id'::text, true), ''::text))::integer); WITH CHECK: (nenhum)
+Politica pedidos_equipe em pedidos (PERMISSIVE) para {atendente,gerente}, comando ALL; USING: true; WITH CHECK: true

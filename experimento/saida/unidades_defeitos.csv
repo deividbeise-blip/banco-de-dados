@@ -1,0 +1,22 @@
+unidade,descricao,defeito
+papel:admin_bd,papel admin_bd,
+papel:atendente,papel atendente,
+papel:cliente,papel cliente,D5
+papel:gerente,papel gerente,
+heranca:atendente->admin_bd,heranca atendente -> admin_bd,D6
+privilegio:atendente@clientes,privilegios de atendente em clientes,
+privilegio:cliente@clientes,privilegios de cliente em clientes,
+privilegio:gerente@clientes,privilegios de gerente em clientes,
+privilegio:gerente@funcionarios,privilegios de gerente em funcionarios,
+privilegio:atendente@pedidos,privilegios de atendente em pedidos,D3
+privilegio:cliente@pedidos,privilegios de cliente em pedidos,
+privilegio:gerente@pedidos,privilegios de gerente em pedidos,
+rls:clientes,estado do RLS em clientes,D1
+rls:funcionarios,estado do RLS em funcionarios,
+rls:pedidos,estado do RLS em pedidos,
+politica:clientes.clientes_cliente_sel,politica clientes_cliente_sel em clientes,
+politica:clientes.clientes_equipe_sel,politica clientes_equipe_sel em clientes,
+politica:funcionarios.funcionarios_gerente_sel,politica funcionarios_gerente_sel em funcionarios,
+politica:pedidos.pedidos_cliente_ins,politica pedidos_cliente_ins em pedidos,D4
+politica:pedidos.pedidos_cliente_sel,politica pedidos_cliente_sel em pedidos,D2
+politica:pedidos.pedidos_equipe,politica pedidos_equipe em pedidos,

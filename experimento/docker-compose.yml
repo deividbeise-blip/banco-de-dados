@@ -1,0 +1,30 @@
+# Duas instancias do PostgreSQL: papeis sao GLOBAIS ao cluster, entao D5 e D6
+# (que alteram papeis) contaminariam a base de controle se fosse uma so.
+# Senha apenas para teste local. Nao use em outro lugar.
+services:
+  bd_controle:
+    image: postgres:18
+    environment:
+      POSTGRES_PASSWORD: teste_local
+      POSTGRES_DB: bd_controle
+    ports: ["5433:5432"]
+    volumes:
+      - ./sql:/scripts:ro
+      - ./sql/01_papeis.sql:/docker-entrypoint-initdb.d/01_papeis.sql:ro
+      - ./sql/02_esquema.sql:/docker-entrypoint-initdb.d/02_esquema.sql:ro
+      - ./sql/03_privilegios.sql:/docker-entrypoint-initdb.d/03_privilegios.sql:ro
+      - ./sql/04_rls.sql:/docker-entrypoint-initdb.d/04_rls.sql:ro
+
+  bd_defeitos:
+    image: postgres:18
+    environment:
+      POSTGRES_PASSWORD: teste_local
+      POSTGRES_DB: bd_defeitos
+    ports: ["5434:5432"]
+    volumes:
+      - ./sql:/scripts:ro
+      - ./sql/01_papeis.sql:/docker-entrypoint-initdb.d/01_papeis.sql:ro
+      - ./sql/02_esquema.sql:/docker-entrypoint-initdb.d/02_esquema.sql:ro
+      - ./sql/03_privilegios.sql:/docker-entrypoint-initdb.d/03_privilegios.sql:ro
+      - ./sql/04_rls.sql:/docker-entrypoint-initdb.d/04_rls.sql:ro
+      - ./sql/05_defeitos.sql:/docker-entrypoint-initdb.d/05_defeitos.sql:ro
