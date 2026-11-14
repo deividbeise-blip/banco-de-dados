@@ -1,0 +1,25 @@
+PROVENIENCIA DAS RESPOSTAS (reconstruidas em 14/11/2026)
+
+Os arquivos originais de saida/manual nao foram commitados e se perderam. Estes foram
+reconstruidos a partir dos arquivos JSON baixados das conversas (defeitos) e do relato
+do resultado (controle). Substituir pelos textos originais das conversas do claude.ai
+sempre que possivel.
+
+DEFEITOS (base com defeitos)
+  defeitos_01.txt  <- auditoria_postgresql (1).json   estilo de resposta compativel com Opus 5.5
+  defeitos_02.txt  <- auditoria_rls (1).json          estilo compativel com Opus 5.5 (bate com a captura da execucao 1)
+  defeitos_03.txt  <- auditoria_rls.json              estilo compativel com Opus 5.5
+  descartadas/defeitos_provavel_sonnet_A.txt <- auditoria_postgresql.json
+  descartadas/defeitos_provavel_sonnet_B.txt <- auditoria_seguranca_postgresql.json
+     (estilo compativel com Sonnet 4.6: risco em maiusculas com travessao; bate com a captura
+      da conversa feita no Sonnet 4.6). CONFIRMAR o modelo no historico antes de decidir.
+
+CONTROLE (base de controle)
+  controle_01..05.txt = "nenhum problema encontrado" (relato do autor: as 5 execucoes
+  retornaram isso). Reconstruido, nao e o texto original. CONFIRMAR o modelo de cada uma.
+
+PENDENTE
+  - Faltam 2 execucoes dos defeitos no Opus 5.5 (defeitos_04.txt e defeitos_05.txt), a nao
+    ser que as conversas descartadas se confirmem como Opus 5.5.
+  - Os arquivos JSON baixados diferem, em 2 casos, do texto que apareceu na mensagem do chat.
+    Definir a regra: usar o texto da mensagem (recomendado) ou o arquivo.
