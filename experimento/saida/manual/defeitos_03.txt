@@ -1,66 +1,68 @@
+```json
 [
-  {
-    "tabela": "clientes",
-    "objeto": "rls:clientes",
-    "descricao": "O RLS está desabilitado na tabela clientes. A política clientes_cliente_sel existe mas não tem efeito.",
-    "risco": "alto",
-    "justificativa": "1) O requisito diz que o cliente consulta somente o próprio cadastro. 2) O papel cliente tem SELECT em clientes. 3) A política clientes_cliente_sel restringiria as linhas a id = app.cliente_id. 4) Como rls_habilitado=nao, o PostgreSQL ignora todas as políticas da tabela. 5) Por isso o cliente lê nome, CPF e e-mail de todos os clientes, o que viola o requisito e expõe dados pessoais.",
-    "correcao_sql": "ALTER TABLE clientes ENABLE ROW LEVEL SECURITY;\nALTER TABLE clientes FORCE ROW LEVEL SECURITY;"
-  },
-  {
-    "tabela": "clientes, pedidos",
-    "objeto": "papel:cliente",
-    "descricao": "O papel cliente tem o atributo BYPASSRLS (contorna_rls=sim).",
-    "risco": "crítico",
-    "justificativa": "1) O isolamento entre clientes depende inteiramente do RLS. 2) Um papel com BYPASSRLS ignora todas as políticas RLS, mesmo em tabelas com RLS habilitado ou forçado. 3) Assim, o cliente lê todos os pedidos e, com RLS habilitado em clientes, ainda leria todos os cadastros. 4) Ele também insere pedidos para qualquer cliente_id. 5) Isso viola o requisito de acessar e criar somente os próprios dados.",
-    "correcao_sql": "ALTER ROLE cliente NOBYPASSRLS;"
-  },
   {
     "tabela": "funcionarios",
     "objeto": "heranca:atendente->admin_bd",
-    "descricao": "O papel atendente é membro de admin_bd com herança de privilégios. Assim, herda os direitos de dono de todas as tabelas.",
-    "risco": "crítico",
-    "justificativa": "1) admin_bd é dono de clientes, funcionarios e pedidos. 2) atendente é membro de admin_bd com herda_privilegios=sim, então exerce os direitos de dono. 3) O dono tem todos os privilégios na tabela e, como nenhuma tabela tem RLS forçado, também ignora as políticas. 4) Logo, o atendente lê funcionarios, incluindo salários, o que o requisito proíbe. 5) Ele também pode alterar, apagar ou excluir tabelas, desabilitar o RLS e mudar políticas. 6) Isso é uma escalada de privilégio para administrador do esquema.",
-    "correcao_sql": "REVOKE admin_bd FROM atendente;"
+    "descricao": "O papel atendente é membro de admin_bd, dono de todas as tabelas, e herda seus privilégios (herda_privilegios=sim).",
+    "risco": "Crítico",
+    "justificativa": "1) admin_bd é dono de clientes, funcionarios e pedidos. 2) O dono de uma tabela tem todos os privilégios sobre ela e pode executar ALTER, DROP, CREATE POLICY e DISABLE RLS. 3) Nenhuma tabela tem rls_forcado=sim, então o RLS não se aplica ao dono. 4) Como atendente herda os privilégios de admin_bd, ele lê funcionarios inteira, inclusive os salários, sem passar por políticas. Isso viola o requisito 'atendente não acessa funcionarios'. 5) Ele também pode alterar ou remover políticas e tabelas, um poder que pertence só a admin_bd.",
+    "correcao_sql": "REVOKE admin_bd FROM atendente;\nALTER TABLE funcionarios FORCE ROW LEVEL SECURITY;\nALTER TABLE pedidos FORCE ROW LEVEL SECURITY;\nALTER TABLE clientes FORCE ROW LEVEL SECURITY;"
+  },
+  {
+    "tabela": "pedidos",
+    "objeto": "papel:cliente",
+    "descricao": "O papel cliente tem o atributo BYPASSRLS (contorna_rls=sim).",
+    "risco": "Crítico",
+    "justificativa": "1) Com BYPASSRLS, nenhuma política RLS vale para cliente. 2) cliente tem SELECT e INSERT em pedidos. 3) Por isso ele lê todos os pedidos de todos os clientes e insere pedidos com qualquer cliente_id. 4) Isso viola o requisito 'consulta e cria somente os próprios pedidos'. 5) O mesmo vale para clientes quando o RLS for habilitado nessa tabela.",
+    "correcao_sql": "ALTER ROLE cliente NOBYPASSRLS;"
+  },
+  {
+    "tabela": "clientes",
+    "objeto": "rls:clientes",
+    "descricao": "O RLS está desabilitado em clientes, então as políticas clientes_cliente_sel e clientes_equipe_sel não têm efeito.",
+    "risco": "Alto",
+    "justificativa": "1) Com rls_habilitado=nao, as políticas definidas são ignoradas. 2) cliente tem SELECT em clientes. 3) Assim, qualquer cliente lê o cadastro de todos os clientes (nome, CPF e email). 4) Isso viola o requisito 'consulta o próprio cadastro' e expõe dados pessoais.",
+    "correcao_sql": "ALTER TABLE clientes ENABLE ROW LEVEL SECURITY;\nALTER TABLE clientes FORCE ROW LEVEL SECURITY;"
+  },
+  {
+    "tabela": "pedidos",
+    "objeto": "politica:pedidos.pedidos_cliente_sel",
+    "descricao": "A política de SELECT para cliente usa USING true e não filtra pelo cliente da sessão.",
+    "risco": "Alto",
+    "justificativa": "1) USING true libera todas as linhas. 2) Mesmo depois de removido o BYPASSRLS, cliente continuaria vendo os pedidos de todos os clientes. 3) Isso viola o requisito 'consulta somente os próprios pedidos'.",
+    "correcao_sql": "DROP POLICY pedidos_cliente_sel ON pedidos;\nCREATE POLICY pedidos_cliente_sel ON pedidos FOR SELECT TO cliente USING (cliente_id = (NULLIF(current_setting('app.cliente_id', true), ''))::integer);"
+  },
+  {
+    "tabela": "pedidos",
+    "objeto": "politica:pedidos.pedidos_cliente_ins",
+    "descricao": "A política de INSERT para cliente usa WITH CHECK true e aceita pedidos em nome de qualquer cliente.",
+    "risco": "Alto",
+    "justificativa": "1) WITH CHECK true aceita qualquer valor em cliente_id. 2) Um cliente pode criar pedidos atribuídos a outro cliente. 3) Isso viola o requisito 'cria somente os próprios pedidos' e compromete a integridade dos dados.",
+    "correcao_sql": "DROP POLICY pedidos_cliente_ins ON pedidos;\nCREATE POLICY pedidos_cliente_ins ON pedidos FOR INSERT TO cliente WITH CHECK (cliente_id = (NULLIF(current_setting('app.cliente_id', true), ''))::integer);"
   },
   {
     "tabela": "pedidos",
     "objeto": "privilegio:atendente@pedidos",
-    "descricao": "O atendente tem DELETE em pedidos, embora o requisito permita apenas consultar e criar pedidos.",
-    "risco": "médio",
-    "justificativa": "1) O requisito do atendente é consultar clientes e pedidos e criar pedidos. 2) O privilégio concedido inclui DELETE. 3) A política pedidos_equipe (comando ALL, USING true) permite remover qualquer linha. 4) Somados, os dois permitem que o atendente exclua qualquer pedido, o que excede o mínimo necessário e põe em risco a integridade dos dados.",
+    "descricao": "atendente tem DELETE em pedidos, mas o requisito prevê apenas consultar e criar.",
+    "risco": "Médio",
+    "justificativa": "1) O requisito de atendente é consultar clientes e pedidos e criar pedidos. 2) O privilégio DELETE, somado à política pedidos_equipe (FOR ALL, USING true), deixa atendente apagar qualquer pedido. 3) Isso fere o princípio do menor privilégio e permite destruir registros.",
     "correcao_sql": "REVOKE DELETE ON pedidos FROM atendente;"
   },
   {
     "tabela": "pedidos",
     "objeto": "politica:pedidos.pedidos_equipe",
-    "descricao": "A política pedidos_equipe vale para o comando ALL com USING true e WITH CHECK true para atendente e gerente. É mais ampla que os requisitos.",
-    "risco": "médio",
-    "justificativa": "1) Pelos requisitos, o gerente apenas consulta, e o atendente consulta e cria. 2) A política libera SELECT, INSERT, UPDATE e DELETE em todas as linhas para os dois papéis. 3) Hoje, os privilégios de tabela limitam parte disso. 4) Mas qualquer GRANT futuro, como UPDATE ou DELETE, ou o DELETE já concedido ao atendente, passa a valer sem nenhuma restrição do RLS. 5) A política deveria ser separada por comando e por papel.",
+    "descricao": "A política vale para todos os comandos (ALL) com USING true e WITH CHECK true, o que é mais amplo que os requisitos de atendente e gerente.",
+    "risco": "Médio",
+    "justificativa": "1) Os requisitos dão SELECT a atendente e gerente e INSERT só a atendente. 2) FOR ALL também cobre UPDATE e DELETE, então só os GRANTs impedem essas operações. 3) Qualquer GRANT concedido por engano passa a valer de imediato, como já acontece com o DELETE de atendente. 4) gerente também ficaria liberado para INSERT se recebesse esse privilégio.",
     "correcao_sql": "DROP POLICY pedidos_equipe ON pedidos;\nCREATE POLICY pedidos_equipe_sel ON pedidos FOR SELECT TO atendente, gerente USING (true);\nCREATE POLICY pedidos_atendente_ins ON pedidos FOR INSERT TO atendente WITH CHECK (true);"
   },
   {
-    "tabela": "pedidos",
-    "objeto": "politica:pedidos.pedidos_cliente_sel",
-    "descricao": "A política de SELECT do cliente em pedidos usa USING true. Com isso, o cliente vê os pedidos de todos os clientes.",
-    "risco": "alto",
-    "justificativa": "1) O requisito diz que o cliente consulta somente os próprios pedidos. 2) A política pedidos_cliente_sel não filtra por cliente_id, porque USING é true. 3) Mesmo depois de remover o BYPASSRLS, o cliente continuaria lendo todos os pedidos, com descrições e valores de outros clientes.",
-    "correcao_sql": "ALTER POLICY pedidos_cliente_sel ON pedidos USING (cliente_id = (NULLIF(current_setting('app.cliente_id', true), ''))::integer);"
-  },
-  {
-    "tabela": "pedidos",
-    "objeto": "politica:pedidos.pedidos_cliente_ins",
-    "descricao": "A política de INSERT do cliente em pedidos usa WITH CHECK true. Com isso, o cliente cria pedidos com qualquer cliente_id.",
-    "risco": "alto",
-    "justificativa": "1) O requisito diz que o cliente cria somente os próprios pedidos. 2) WITH CHECK true aceita qualquer linha inserida. 3) Assim, o cliente pode inserir pedidos em nome de outro cliente, o que permite fraude ou poluição de dados.",
-    "correcao_sql": "ALTER POLICY pedidos_cliente_ins ON pedidos WITH CHECK (cliente_id = (NULLIF(current_setting('app.cliente_id', true), ''))::integer);"
-  },
-  {
-    "tabela": "funcionarios",
-    "objeto": "rls:funcionarios",
-    "descricao": "O RLS está habilitado em funcionarios, mas não está forçado. O dono (admin_bd) e quem herda dele ignoram as políticas.",
-    "risco": "baixo",
-    "justificativa": "1) Com rls_forcado=nao, o dono da tabela não fica sujeito às políticas. 2) Qualquer papel que herde de admin_bd, como o atendente hoje, lê todos os salários sem passar pelo RLS. 3) Forçar o RLS é uma defesa em profundidade, que vale também para pedidos e clientes. Ela não substitui a remoção da herança indevida.",
-    "correcao_sql": "ALTER TABLE funcionarios FORCE ROW LEVEL SECURITY;\nALTER TABLE pedidos FORCE ROW LEVEL SECURITY;"
+    "tabela": "clientes",
+    "objeto": "politica:clientes.clientes_cliente_sel",
+    "descricao": "A política identifica o cliente pela variável de sessão app.cliente_id, que o próprio usuário da sessão pode alterar.",
+    "risco": "Médio",
+    "justificativa": "1) Qualquer papel pode executar SET app.cliente_id = '<outro id>', porque parâmetros customizados não têm restrição. 2) Se o cliente executa SQL diretamente ou consegue influenciar a sessão, ele se passa por outro cliente e lê o cadastro dele. 3) A mesma fraqueza atinge as políticas de pedidos corrigidas acima. 4) O isolamento só é confiável se a aplicação controlar a sessão de forma exclusiva.",
+    "correcao_sql": "-- Garantir que somente a aplicação defina app.cliente_id (ex.: SET LOCAL dentro de transação controlada) e que o usuário final não execute SQL arbitrário; alternativamente, usar um papel de login por cliente e mapear via tabela:\n-- CREATE TABLE cliente_login (usuario name PRIMARY KEY, cliente_id integer NOT NULL);\n-- CREATE POLICY clientes_cliente_sel ON clientes FOR SELECT TO cliente USING (id = (SELECT cliente_id FROM cliente_login WHERE usuario = current_user));"
   }
 ]
+```

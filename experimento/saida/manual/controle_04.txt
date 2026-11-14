@@ -1,1 +1,12 @@
-nenhum problema encontrado
+```json
+[
+  {
+    "tabela": "pedidos",
+    "objeto": "politica:pedidos_equipe",
+    "descricao": "A política pedidos_equipe vale para o comando ALL (SELECT, INSERT, UPDATE e DELETE) e tem USING true e WITH CHECK true para atendente e gerente. Os requisitos pedem menos que isso: atendente só consulta e cria pedidos, e gerente só consulta. A política autoriza no RLS operações que nenhum dos dois papéis deveria fazer. Hoje o problema não pode ser explorado, porque os privilégios de tabela (atendente: INSERT, SELECT; gerente: SELECT) bloqueiam o resto. Mesmo assim, a proteção depende só do GRANT.",
+    "risco": "Baixo hoje, sem exploração possível com os privilégios atuais. Vira alto se alguém conceder outros privilégios depois: por exemplo, um GRANT UPDATE/DELETE ON pedidos TO atendente ou um GRANT INSERT ON pedidos TO gerente passaria a permitir alterar, apagar ou criar qualquer pedido de qualquer cliente, sem nenhuma restrição de linha.",
+    "justificativa": "1) O RLS está habilitado em pedidos, então cada comando precisa de um GRANT e de uma política permissiva que se aplique a ele. 2) pedidos_equipe é FOR ALL TO atendente, gerente, com USING true e WITH CHECK true. Isso libera todas as linhas para leitura, inserção, alteração e exclusão. 3) O requisito do atendente é só consultar e criar, sem UPDATE ou DELETE. O requisito do gerente é só consultar, sem INSERT, UPDATE ou DELETE. 4) Hoje esses comandos falham porque faltam os privilégios de tabela. Com isso, a camada de RLS não faz cumprir o menor privilégio e há uma única barreira, quando deveriam ser duas. 5) As outras políticas do esquema são específicas por comando (SELECT/INSERT), o que mostra que FOR ALL aqui é exagerado e não uma decisão intencional. 6) A correção é trocar a política por políticas separadas por comando e por papel, alinhadas aos requisitos.",
+    "correcao_sql": "BEGIN;\nDROP POLICY pedidos_equipe ON pedidos;\nCREATE POLICY pedidos_equipe_sel ON pedidos AS PERMISSIVE FOR SELECT TO atendente, gerente USING (true);\nCREATE POLICY pedidos_atendente_ins ON pedidos AS PERMISSIVE FOR INSERT TO atendente WITH CHECK (true);\nCOMMIT;"
+  }
+]
+```

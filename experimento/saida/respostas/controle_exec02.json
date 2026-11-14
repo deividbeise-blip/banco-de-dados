@@ -2,14 +2,14 @@
   "instancia": "controle",
   "execucao": 2,
   "modelo": "Claude Opus 5.5",
-  "interface": "claude.ai (chat)",
+  "interface": "Claude Code (claude -p, pasta isolada, ferramentas desabilitadas)",
   "execucao_manual": true,
   "temperatura": null,
   "temperatura_controlada": false,
-  "data_utc": "2026-11-14T05:37:08.373022+00:00",
+  "data_utc": "2026-11-14T07:33:35.432304+00:00",
   "hash_prompt": "557701331580",
   "observacao": "",
-  "formato_ok": true,
-  "resposta_bruta": "nenhum problema encontrado\n",
-  "problemas": []
+  "formato_ok": false,
+  "resposta_bruta": "\"nenhum problema encontrado\"\n",
+  "problemas": null
 }
