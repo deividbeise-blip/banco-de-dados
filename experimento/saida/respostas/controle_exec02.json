@@ -9,7 +9,8 @@
   "data_utc": "2026-11-14T07:33:35.432304+00:00",
   "hash_prompt": "557701331580",
   "observacao": "",
-  "formato_ok": false,
+  "formato_ok": true,
+  "normalizado": true,
   "resposta_bruta": "\"nenhum problema encontrado\"\n",
-  "problemas": null
+  "problemas": []
 }

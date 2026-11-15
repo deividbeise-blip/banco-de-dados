@@ -23,3 +23,7 @@ PENDENTE
     ser que as conversas descartadas se confirmem como Opus 5.5.
   - Os arquivos JSON baixados diferem, em 2 casos, do texto que apareceu na mensagem do chat.
     Definir a regra: usar o texto da mensagem (recomendado) ou o arquivo.
+
+    O importador remove aspas, espaços e marcação markdown nas bordas da resposta
+antes de validar o formato; caso observado em controle_02 ("nenhum problema
+encontrado" entre aspas), registrado no JSON como "normalizado": true.
