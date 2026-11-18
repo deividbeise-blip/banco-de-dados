@@ -1,0 +1,9 @@
+base,execucao,unidade
+controle,3,politica:pedidos.pedidos_cliente_sel
+controle,3,politica:pedidos.pedidos_equipe
+controle,4,politica:pedidos.pedidos_equipe
+defeitos,1,politica:pedidos.pedidos_equipe
+defeitos,2,politica:pedidos.pedidos_equipe
+defeitos,3,politica:clientes.clientes_cliente_sel
+defeitos,3,politica:pedidos.pedidos_equipe
+defeitos,5,politica:pedidos.pedidos_equipe

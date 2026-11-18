@@ -1,7 +1,7 @@
 PROVENIENCIA DAS RESPOSTAS DO LLM
 
 ORIGEM
-  As 10 respostas em saida/manual (controle_01..05 e defeitos_01..05) foram geradas
+  As 10 respostas em saida/brutas (controle_01..05 e defeitos_01..05) foram geradas
   em 14/11/2026 com o modelo Claude Opus 5.5, pelo Claude Code em modo nao interativo
   (claude -p --model opus), pelo script rodar_claude_code.ps1.
 
@@ -15,8 +15,13 @@ ISOLAMENTO
   - Cada chamada e uma sessao nova, sem memoria das anteriores.
   - A temperatura nao e configuravel nessa interface.
 
+CAPTURA
+  O rodar_claude_code.ps1 grava a saida de cada chamada diretamente em
+  saida/brutas/<base>_NN.txt (UTF-8 sem BOM). Nenhuma resposta foi copiada
+  ou colada a mao.
+
 CONVERSAO
-  importar_manual.py converte cada resposta em saida/respostas/<base>_execNN.json,
+  importar_respostas.py converte cada resposta em saida/respostas/<base>_execNN.json,
   com modelo, interface, data, hash do prompt e o texto original (resposta_bruta).
   Se a resposta nao passar na validacao de formato, o importador remove aspas,
   crases, asteriscos, espacos e ponto final das bordas e confere se sobrou
@@ -29,3 +34,14 @@ HISTORICO
   perdeu e foi reconstruida, e havia conversas com outro modelo (Sonnet 4.6).
   Por isso todas as execucoes foram refeitas no Claude Code. As respostas
   dessa primeira rodada estao no commit db1f2fd e nao entram nas metricas.
+NOMES
+  Ate a versao 94395b9, importar_respostas.py se chamava importar_manual.py e
+  saida/brutas se chamava saida/manual. Os nomes vinham da primeira rodada, em
+  que as respostas eram coladas do chat. O campo "execucao_manual" dos JSON
+  apenas indica que a resposta nao veio da API (rodar_llm.py).
+
+COMPARACAO
+  comparar.py casa o campo "objeto" de cada problema com as unidades de
+  saida/unidades_<base>.csv. Um caso foi casado pelo nome da politica:
+  controle E4 escreveu "politica:pedidos_equipe" no lugar de
+  "politica:pedidos.pedidos_equipe". As saidas ficam em saida/*.csv.

@@ -1,17 +1,21 @@
 """
-importar_manual.py - converte as respostas salvas em saida\\manual\\ para o
+importar_respostas.py - converte as respostas salvas em saida\\brutas\\ para o
 mesmo formato JSON do rodar_llm.py.
 
-As respostas podem vir do chat do claude.ai (coladas a mao) ou do Claude Code
-em modo nao interativo (rodar_claude_code.ps1). Informe a origem em --interface.
+As respostas usadas no artigo foram gravadas automaticamente pelo
+rodar_claude_code.ps1 (Claude Code em modo nao interativo), sem copia manual.
+O script tambem aceita respostas salvas a mao (por exemplo, do chat do
+claude.ai); informe a origem em --interface.
+O campo "execucao_manual" do JSON indica apenas que a resposta nao veio do
+rodar_llm.py (API); ele nao significa que o texto foi colado a mao.
 
 Passo a passo:
-  1. Salve cada resposta em saida\\manual\\ com o nome  <base>_<NN>.txt  (UTF-8):
+  1. Salve cada resposta em saida\\brutas\\ com o nome  <base>_<NN>.txt  (UTF-8):
        controle_01.txt ... controle_05.txt
        defeitos_01.txt ... defeitos_05.txt
   2. Rode (na pasta do experimento):
-       python importar_manual.py --modelo "Claude Opus 5.5" --interface "..."
-     Gera saida\\respostas\\<base>_exec<NN>.json (o que o Donjoe usa nas metricas).
+       python importar_respostas.py --modelo "Claude Opus 5.5" --interface "..."
+     Gera saida\\respostas\\<base>_exec<NN>.json (entrada do comparar.py).
 
 Registra: modelo, interface, data do arquivo, hash do prompt e que a
 temperatura NAO foi controlada.
@@ -31,7 +35,7 @@ import re
 
 import rodar_llm as r
 
-MANUAL = r.PASTA / "manual"
+BRUTAS = r.PASTA / "brutas"
 
 FRASE_SEM_PROBLEMAS = "nenhum problema encontrado"
 BORDAS = " \t\r\n\"'`*“”‘’."
@@ -77,12 +81,12 @@ def main():
     ap.add_argument("--observacao", default="")
     a = ap.parse_args()
 
-    if not MANUAL.exists():
-        raise SystemExit(f"Crie a pasta {MANUAL} e salve as respostas la dentro.")
+    if not BRUTAS.exists():
+        raise SystemExit(f"Crie a pasta {BRUTAS} e salve as respostas la dentro.")
     r.RESP.mkdir(parents=True, exist_ok=True)
 
     resumo = {}
-    for arq in sorted(MANUAL.glob("*.txt")):
+    for arq in sorted(BRUTAS.glob("*.txt")):
         m = re.fullmatch(r"(controle|defeitos)_(\d+)\.txt", arq.name)
         if not m:
             print(f"ignorado (nome fora do padrao): {arq.name}")

@@ -12,9 +12,11 @@
 - docker-compose.yml ....... duas instancias: bd_controle (5433) e bd_defeitos (5434)
 - extrator.py .............. gera os prompts e as listas de unidades em saida/
 - rodar_claude_code.ps1 .... executa os prompts no Claude Code, isolado do repositorio
-- importar_manual.py ....... converte as respostas de saida/manual em JSON
-- saida/manual ............. respostas do LLM (5 por base)
+- importar_respostas.py .... converte as respostas de saida/brutas em JSON
+- comparar.py .............. compara as respostas com o gabarito e calcula as metricas
+- saida/brutas ............. respostas do LLM (5 por base)
 - saida/respostas .......... respostas convertidas em JSON
+- saida/*.csv .............. metricas por execucao, deteccao por defeito e falsos alertas
 - saida/PROVENIENCIA.txt ... como as respostas foram geradas
 
 ## Como rodar
@@ -30,8 +32,10 @@
 4. Execucao do LLM (Windows, Claude Code instalado e logado):
    powershell -ExecutionPolicy Bypass -File .\rodar_claude_code.ps1
 5. Conversao das respostas:
-   python importar_manual.py --modelo "Claude Opus 5.5" --interface "Claude Code (claude -p, pasta isolada, ferramentas desabilitadas)"
-6. Para recriar do zero: docker compose down && docker compose up -d
+   python importar_respostas.py --modelo "Claude Opus 5.5" --interface "Claude Code (claude -p, pasta isolada, ferramentas desabilitadas)"
+6. Comparacao com o gabarito e metricas:
+   python comparar.py
+7. Para recriar do zero: docker compose down && docker compose up -d
    (os scripts de inicializacao so rodam com a instancia vazia).
 
 ## Observacoes

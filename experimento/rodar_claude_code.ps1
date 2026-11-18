@@ -1,11 +1,11 @@
-# Roda os prompts no Claude Code, isolado do repositório.
+﻿# Roda os prompts no Claude Code, isolado do repositório.
 # Cada chamada de "claude -p" é uma conversa nova, sem memória das anteriores.
 
 $OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 $exp = $PSScriptRoot
-$saida = Join-Path $exp "saida\manual"
+$saida = Join-Path $exp "saida\brutas"
 $isolado = "C:\temp\llm-isolado"
 $bloqueadas = "Read,Bash,Glob,Grep,Edit,Write,NotebookEdit,WebFetch,WebSearch,Task"
 $utf8SemBom = New-Object System.Text.UTF8Encoding $false
